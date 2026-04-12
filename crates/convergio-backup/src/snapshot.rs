@@ -139,7 +139,8 @@ fn compute_file_checksum(path: &Path) -> BackupResult<String> {
         }
         hasher.update(&buf[..n]);
     }
-    Ok(format!("{:x}", hasher.finalize()))
+    let hash = hasher.finalize();
+    Ok(hash.iter().map(|b| format!("{b:02x}")).collect())
 }
 
 /// Verify a snapshot file matches its recorded checksum.
