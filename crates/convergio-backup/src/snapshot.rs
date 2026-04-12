@@ -101,8 +101,7 @@ pub fn list_snapshots(pool: &ConnPool) -> BackupResult<Vec<SnapshotRecord>> {
                 node: row.get(5)?,
             })
         })?
-        .filter_map(|r| r.ok())
-        .collect();
+        .collect::<Result<Vec<_>, _>>()?;
     Ok(records)
 }
 

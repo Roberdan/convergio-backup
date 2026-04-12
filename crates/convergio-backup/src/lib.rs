@@ -4,7 +4,7 @@
 //! with WAL checkpoint, disaster recovery via snapshot restore, and
 //! org-level data export/import for cross-node migration.
 //!
-//! Deps: types, db, security (audit trail), telemetry.
+//! Deps: types, db.
 
 pub mod export;
 pub mod ext;
@@ -17,5 +17,5 @@ pub mod snapshot;
 pub mod types;
 
 pub use ext::BackupExtension;
-pub use types::{BackupError, BackupResult};
+pub use types::{validate_sql_identifier, BackupError, BackupResult};
 pub mod mcp_defs;

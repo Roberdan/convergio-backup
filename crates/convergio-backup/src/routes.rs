@@ -161,7 +161,19 @@ async fn export_org(
     State(st): State<Arc<BackupState>>,
     Json(body): Json<ExportReq>,
 ) -> Json<Value> {
-    let filename = format!("org-export-{}.json", body.org_id);
+    // Sanitise org_id to prevent path traversal in the filename
+    let safe_id: String = body
+        .org_id
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect();
+    let filename = format!("org-export-{safe_id}.json");
     let dest = st.backup_dir.join(&filename);
     match crate::export::export_org_data(
         &st.pool,
@@ -185,6 +197,10 @@ async fn import_org(
     Json(body): Json<ImportReq>,
 ) -> Json<Value> {
     let path = PathBuf::from(&body.path);
+    // Validate path to prevent directory traversal
+    if let Err(e) = convergio_types::platform_paths::validate_path_components(&path) {
+        return Json(json!({"ok": false, "error": e}));
+    }
     match crate::import::import_org_data(&st.pool, &path) {
         Ok(result) => Json(json!({"ok": true, "result": result})),
         Err(e) => Json(json!({"ok": false, "error": e.to_string()})),

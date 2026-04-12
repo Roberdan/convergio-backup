@@ -24,8 +24,7 @@ pub fn load_rules(pool: &ConnPool) -> BackupResult<Vec<RetentionRule>> {
                 max_age_days: row.get(2)?,
             })
         })?
-        .filter_map(|r| r.ok())
-        .collect();
+        .collect::<Result<Vec<_>, _>>()?;
     if rules.is_empty() {
         return Ok(crate::types::default_retention_rules());
     }
@@ -47,13 +46,21 @@ pub fn load_org_rules(pool: &ConnPool, org_id: &str) -> BackupResult<Vec<Retenti
                 max_age_days: row.get(2)?,
             })
         })?
-        .filter_map(|r| r.ok())
-        .collect();
+        .collect::<Result<Vec<_>, _>>()?;
     Ok(rules)
 }
 
 /// Save a retention rule to the database.
 pub fn save_rule(pool: &ConnPool, rule: &RetentionRule, org_id: Option<&str>) -> BackupResult<()> {
+    // Validate identifiers
+    crate::types::validate_sql_identifier(&rule.table)?;
+    crate::types::validate_sql_identifier(&rule.timestamp_column)?;
+    if rule.max_age_days == 0 {
+        return Err(crate::types::BackupError::InvalidConfig(
+            "max_age_days must be > 0".into(),
+        ));
+    }
+
     let conn = pool.get()?;
     let effective_org = org_id.unwrap_or("__global__");
     conn.execute(
@@ -75,6 +82,10 @@ pub fn save_rule(pool: &ConnPool, rule: &RetentionRule, org_id: Option<&str>) ->
 
 /// Execute purge for a single retention rule. Returns a PurgeEvent.
 pub fn purge_table(pool: &ConnPool, rule: &RetentionRule) -> BackupResult<PurgeEvent> {
+    // Validate identifiers to prevent SQL injection
+    crate::types::validate_sql_identifier(&rule.table)?;
+    crate::types::validate_sql_identifier(&rule.timestamp_column)?;
+
     let conn = pool.get()?;
     let cutoff = format!("-{} days", rule.max_age_days);
 
@@ -186,6 +197,39 @@ mod tests {
         let rules = load_rules(&pool).unwrap();
         assert_eq!(rules.len(), 1);
         assert_eq!(rules[0].max_age_days, 90);
+    }
+
+    #[test]
+    fn save_rule_rejects_zero_max_age() {
+        let pool = setup_pool();
+        let rule = RetentionRule {
+            table: "audit_log".into(),
+            timestamp_column: "created_at".into(),
+            max_age_days: 0,
+        };
+        assert!(save_rule(&pool, &rule, None).is_err());
+    }
+
+    #[test]
+    fn save_rule_rejects_sql_injection_table() {
+        let pool = setup_pool();
+        let rule = RetentionRule {
+            table: "audit_log; DROP TABLE backup_snapshots".into(),
+            timestamp_column: "created_at".into(),
+            max_age_days: 30,
+        };
+        assert!(save_rule(&pool, &rule, None).is_err());
+    }
+
+    #[test]
+    fn purge_rejects_sql_injection_column() {
+        let pool = setup_pool();
+        let rule = RetentionRule {
+            table: "audit_log".into(),
+            timestamp_column: "created_at; DROP TABLE audit_log".into(),
+            max_age_days: 365,
+        };
+        assert!(purge_table(&pool, &rule).is_err());
     }
 
     #[test]

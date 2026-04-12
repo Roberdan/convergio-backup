@@ -82,6 +82,9 @@ fn import_table_rows(
     table: &str,
     rows: &[Value],
 ) -> BackupResult<(i64, i64)> {
+    // Validate table name to prevent SQL injection from malicious bundles
+    crate::types::validate_sql_identifier(table)?;
+
     let mut inserted = 0i64;
     let mut skipped = 0i64;
 
@@ -92,6 +95,10 @@ fn import_table_rows(
         };
 
         let columns: Vec<&str> = obj.keys().map(|k| k.as_str()).collect();
+        // Validate all column names from the bundle
+        for col in &columns {
+            crate::types::validate_sql_identifier(col)?;
+        }
         let placeholders: Vec<String> = (1..=columns.len()).map(|i| format!("?{i}")).collect();
 
         let sql = format!(
