@@ -72,6 +72,19 @@ pub struct PurgeEvent {
     pub executed_at: String,
 }
 
+/// Validate that a SQL identifier (table or column name) contains only
+/// safe characters: `[a-zA-Z0-9_]`. Prevents SQL injection when identifiers
+/// must be interpolated into queries (SQLite does not support parameterised
+/// identifiers).
+pub fn validate_sql_identifier(name: &str) -> BackupResult<()> {
+    if name.is_empty() || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+        return Err(BackupError::InvalidConfig(format!(
+            "invalid SQL identifier: {name:?}"
+        )));
+    }
+    Ok(())
+}
+
 /// Default retention rules per spec.
 pub fn default_retention_rules() -> Vec<RetentionRule> {
     vec![
@@ -127,5 +140,21 @@ mod tests {
         let json = serde_json::to_string(&ev).unwrap();
         assert!(json.contains("audit_log"));
         assert!(json.contains("42"));
+    }
+
+    #[test]
+    fn validate_sql_identifier_accepts_valid() {
+        assert!(validate_sql_identifier("audit_log").is_ok());
+        assert!(validate_sql_identifier("table1").is_ok());
+        assert!(validate_sql_identifier("created_at").is_ok());
+    }
+
+    #[test]
+    fn validate_sql_identifier_rejects_injection() {
+        assert!(validate_sql_identifier("").is_err());
+        assert!(validate_sql_identifier("table; DROP TABLE x").is_err());
+        assert!(validate_sql_identifier("audit-log").is_err());
+        assert!(validate_sql_identifier("../etc/passwd").is_err());
+        assert!(validate_sql_identifier("table\0name").is_err());
     }
 }

@@ -97,6 +97,10 @@ fn export_table_rows(
     org_col: &str,
     org_id: &str,
 ) -> BackupResult<Vec<Value>> {
+    // Validate identifiers to prevent SQL injection
+    crate::types::validate_sql_identifier(table)?;
+    crate::types::validate_sql_identifier(org_col)?;
+
     let sql = format!("SELECT * FROM {table} WHERE {org_col} = ?1");
     let mut stmt = conn.prepare(&sql)?;
     let col_names: Vec<String> = stmt.column_names().iter().map(|s| s.to_string()).collect();
