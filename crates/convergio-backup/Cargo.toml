@@ -1,0 +1,27 @@
+[package]
+name = "convergio-backup"
+description = "Data retention, backup & disaster recovery for Convergio"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+convergio-types = { workspace = true }
+convergio-db = { workspace = true }
+convergio-security = { workspace = true }
+convergio-telemetry = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+rusqlite = { workspace = true }
+uuid = { workspace = true }
+r2d2 = { workspace = true }
+sha2 = { workspace = true }
+axum = { workspace = true }
+dirs = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"
