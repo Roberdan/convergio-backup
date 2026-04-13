@@ -147,7 +147,15 @@ async fn get_purge_log(State(st): State<Arc<BackupState>>) -> Json<Value> {
         Ok(r) => r,
         Err(e) => return Json(json!({"ok": false, "error": e.to_string()})),
     };
-    let entries: Vec<Value> = rows.filter_map(|r| r.ok()).collect();
+    let mut entries = Vec::new();
+    for r in rows {
+        match r {
+            Ok(v) => entries.push(v),
+            Err(e) => {
+                tracing::warn!(err = %e, "failed to read purge log row");
+            }
+        }
+    }
     Json(json!({"ok": true, "log": entries}))
 }
 

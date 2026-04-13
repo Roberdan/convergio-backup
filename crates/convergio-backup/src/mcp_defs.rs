@@ -25,11 +25,11 @@ pub fn backup_tools() -> Vec<McpToolDef> {
         },
         McpToolDef {
             name: "cvg_verify_snapshot".into(),
-            description: "Verify integrity of backup snapshots.".into(),
-            method: "GET".into(),
+            description: "Verify integrity of a backup snapshot.".into(),
+            method: "POST".into(),
             path: "/api/backup/snapshots/verify".into(),
-            input_schema: json!({"type": "object", "properties": {}}),
-            min_ring: "community".into(),
+            input_schema: json!({"type": "object", "properties": {"id": {"type": "string", "description": "Snapshot ID to verify"}}, "required": ["id"]}),
+            min_ring: "trusted".into(),
             path_params: vec![],
         },
         McpToolDef {
