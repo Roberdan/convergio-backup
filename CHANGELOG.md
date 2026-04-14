@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/Roberdan/convergio-backup/compare/v0.1.2...v0.1.3) (2026-04-14)
+
+
+### Bug Fixes
+
+* pass CARGO_REGISTRY_TOKEN to release workflow ([e4129f1](https://github.com/Roberdan/convergio-backup/commit/e4129f141ba7bb4ef098f96c9509a1e37b1d7cf8))
+
 ## [0.1.2](https://github.com/Roberdan/convergio-backup/compare/v0.1.1...v0.1.2) (2026-04-13)
 
 
