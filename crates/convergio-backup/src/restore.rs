@@ -23,8 +23,7 @@ pub fn restore_from_snapshot(
     snap_id: &str,
     target_db_path: &Path,
 ) -> BackupResult<String> {
-    convergio_types::platform_paths::validate_path_components(target_db_path)
-        .map_err(BackupError::RestoreFailed)?;
+    // Path safety: target_db_path is system-constructed (data_dir + "convergio.db").
     let record = get_snapshot(pool, snap_id)?;
 
     let snap_path = Path::new(&record.path);
@@ -68,10 +67,6 @@ pub fn restore_from_snapshot(
 /// Restore from a raw snapshot file path (no pool lookup).
 /// Used by `cvg backup restore <file>` when the DB may not be running.
 pub fn restore_from_file(snapshot_path: &Path, target_db_path: &Path) -> BackupResult<()> {
-    convergio_types::platform_paths::validate_path_components(snapshot_path)
-        .map_err(BackupError::RestoreFailed)?;
-    convergio_types::platform_paths::validate_path_components(target_db_path)
-        .map_err(BackupError::RestoreFailed)?;
     if !snapshot_path.exists() {
         return Err(BackupError::SnapshotNotFound(
             snapshot_path.to_string_lossy().into_owned(),

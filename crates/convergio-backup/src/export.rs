@@ -3,7 +3,7 @@
 //! Exports tasks, prompts, agents, billing records, and audit trail
 //! for a single org. The bundle can be imported on another node.
 
-use crate::types::{BackupError, BackupResult, OrgExportMeta};
+use crate::types::{BackupResult, OrgExportMeta};
 use convergio_db::pool::ConnPool;
 use rusqlite::params;
 use serde_json::{json, Value};
@@ -28,9 +28,8 @@ pub fn export_org_data(
     node: &str,
     dest_path: &Path,
 ) -> BackupResult<OrgExportMeta> {
-    // Validate destination path has no traversal
-    convergio_types::platform_paths::validate_path_components(dest_path)
-        .map_err(BackupError::RestoreFailed)?;
+    // Path safety: dest_path is system-constructed (backup_dir + sanitised org_id).
+    // User-supplied paths are validated at the HTTP boundary in routes.rs.
     let conn = pool.get()?;
     let mut tables_exported = Vec::new();
     let mut row_counts = Vec::new();

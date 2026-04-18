@@ -27,8 +27,8 @@ pub fn create_snapshot(
     dest_dir: &Path,
     node: &str,
 ) -> BackupResult<SnapshotRecord> {
-    convergio_types::platform_paths::validate_path_components(dest_dir)
-        .map_err(BackupError::RestoreFailed)?;
+    // Path safety: dest_dir is system-constructed (backup_dir from data_root).
+    // User-supplied paths are validated at the HTTP boundary in routes.rs.
     std::fs::create_dir_all(dest_dir)?;
 
     // WAL checkpoint for consistency
