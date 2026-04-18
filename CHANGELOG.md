@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4](https://github.com/Roberdan/convergio-backup/compare/v0.1.3...v0.1.4) (2026-04-18)
+
+
+### Bug Fixes
+
+* security and quality audit pass 2 ([bb2aebc](https://github.com/Roberdan/convergio-backup/commit/bb2aebc6cf2f340c5f628a686cd1d0896f107bd4))
+* security audit pass  temp file leaks, MCP method mismatch, error swallowing2 ([560454f](https://github.com/Roberdan/convergio-backup/commit/560454ff3624e9d7a73ae0bec7dad0892133fff3))
+
 ## [0.1.3](https://github.com/Roberdan/convergio-backup/compare/v0.1.2...v0.1.3) (2026-04-14)
 
 
